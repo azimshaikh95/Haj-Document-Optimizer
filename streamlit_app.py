@@ -5,16 +5,16 @@ from io import BytesIO
 import zipfile
 import re
 from datetime import datetime
+import os
 
 # Page Configuration
 st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="centered")
 
-# --- SIDEBAR SHORTCUTS ---
+# --- SIDEBAR SHORTCUTS & GUIDELINES ---
 with st.sidebar:
     st.markdown("## 🌐 Official Portals")
-    st.write("Click below to open pages in a new tab:")
     
-    # Custom styled sidebar links that act like buttons
+    # Custom styled sidebar links
     st.markdown("""
         <a href="https://hajcommittee.gov.in/registration" target="_blank" style="text-decoration: none;">
             <div style="background-color: #1E1E1E; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px; font-weight: bold; border: 1px solid #333333;">
@@ -29,7 +29,13 @@ with st.sidebar:
         <hr style="margin-top: 10px; margin-bottom: 20px; border-color: #333333;">
     """, unsafe_allow_html=True)
     
-    st.info("💡 Tip: Upload the bulk Adobe Scan PDF here first, download the ZIP file, and then use the links above to upload them directly to the Haj portal.")
+    # NEW: Guidelines Tab loaded dynamically from guidelines.md
+    with st.expander("📋 Scanning Guidelines", expanded=False):
+        if os.path.exists("guidelines.md"):
+            with open("guidelines.md", "r", encoding="utf-8") as f:
+                st.markdown(f.read())
+        else:
+            st.warning("guidelines.md file not found in repo.")
 
 # Main Application Title
 st.title("🕋 Haj 2027 Document Optimizer")
@@ -71,12 +77,10 @@ def compress_image_to_target(img, rules):
 uploaded_file = st.file_uploader("Upload Bulk Adobe Scan PDF", type=["pdf"])
 
 if uploaded_file is not None:
-    # Extract the clean file name without extension
     raw_name = uploaded_file.name.rsplit('.', 1)[0]
     clean_name = re.sub(r'[^a-zA-Z0-9]', '-', raw_name).strip('-')
     clean_name = re.sub(r'-+', '-', clean_name)
     
-    # Generate Folder & ZIP name
     current_date = datetime.now().strftime("%d-%m-%y")
     folder_name = f"{current_date}-{clean_name}"
     zip_filename = f"{folder_name}.zip"
@@ -88,7 +92,6 @@ if uploaded_file is not None:
     total_pages = len(pages)
     st.success(f"Successfully loaded {total_pages} pages!")
     
-    # AUTOMATED PREDICTION MATH
     if total_pages >= 4 and (total_pages - 1) % 3 == 0:
         num_pilgrims = (total_pages - 1) // 3
         st.info(f"📋 **Smart Detection:** Found exactly **{num_pilgrims} pilgrim(s)** in this document group sequence.")
@@ -96,7 +99,6 @@ if uploaded_file is not None:
         num_pilgrims = max(1, round((total_pages - 1) / 3))
         st.warning(f"⚠️ **Page Count Warning:** The PDF has {total_pages} pages, which doesn't perfectly fit a standard group structure. The app is guessing **{num_pilgrims} pilgrim(s)**. Please review individual pages carefully.")
 
-    # Dynamically build the expected sequence mapping based on your exact scanning order
     expected_sequence = []
     for p in range(1, num_pilgrims + 1):
         expected_sequence.append({"filename": f"{p}PP1.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 1"})
@@ -107,7 +109,6 @@ if uploaded_file is not None:
 
     expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
 
-    # Pre-process and compress all images into a dictionary for the ZIP archive
     processed_images = {}
     with st.spinner("Optimizing and compressing all files..."):
         for idx, page in enumerate(pages):
@@ -116,7 +117,6 @@ if uploaded_file is not None:
                 comp_bytes = compress_image_to_target(page, step["rules"])
                 processed_images[step["filename"]] = comp_bytes
 
-    # ZIP Download All Button placed at the top
     if processed_images:
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
@@ -125,7 +125,6 @@ if uploaded_file is not None:
         
         st.markdown("### 📥 Download All Work at Once")
         
-        # Inject Custom CSS to cleanly style the full-width button
         st.markdown("""
             <style>
                 div.stDownloadButton > button {
@@ -158,7 +157,6 @@ if uploaded_file is not None:
             key="big_zip_btn"
         )
 
-    # Process individual pages display lower down for manual review
     for idx, page in enumerate(pages):
         if idx >= len(expected_sequence):
             st.warning(f"⚠️ Page {idx + 1} is extra and exceeds predicted sequence boundaries.")
