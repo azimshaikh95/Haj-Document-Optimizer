@@ -106,7 +106,6 @@ if uploaded_file is not None:
         # Inject Custom CSS to forcefully center the container, row, and inner button element
         st.markdown("""
             <style>
-                /* Target the element wrapper directly to align its inner components to center */
                 .element-container:has(iframe), 
                 .element-container:has(button#big_zip_btn),
                 div.stDownloadButton {
@@ -117,14 +116,12 @@ if uploaded_file is not None:
                     text-align: center !important;
                 }
                 
-                /* Force alignment on the data block container */
                 div.stDownloadButton > data {
                     display: flex !important;
                     justify-content: center !important;
                     width: 100% !important;
                 }
                 
-                /* Target the download button layout attributes */
                 div.stDownloadButton button {
                     background-color: #1E1E1E !important;
                     color: #FFFFFF !important;
@@ -135,7 +132,7 @@ if uploaded_file is not None:
                     border-radius: 8px !important;
                     width: auto !important;
                     min-width: 340px !important;
-                    margin: 0 auto !important; /* Forces block margins to split equally left and right */
+                    margin: 0 auto !important;
                     transition: all 0.3s ease !important;
                     box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
                     display: inline-flex !important;
@@ -143,7 +140,6 @@ if uploaded_file is not None:
                     align-items: center !important;
                 }
                 
-                /* Hover styling interactions */
                 div.stDownloadButton button:hover {
                     background-color: #333333 !important;
                     border-color: #4F4F4F !important;
@@ -161,4 +157,36 @@ if uploaded_file is not None:
             data=zip_buffer.getvalue(),
             file_name=zip_filename,
             mime="application/zip",
-            key="big_zip_btn
+            key="big_zip_btn"
+        )
+
+    # Process individual pages display lower down for manual review
+    for idx, page in enumerate(pages):
+        if idx >= len(expected_sequence):
+            st.warning(f"⚠️ Page {idx + 1} is extra and exceeds configured sequence rules.")
+            continue
+            
+        step = expected_sequence[idx]
+        filename = step["filename"]
+        rules = step["rules"]
+        
+        st.markdown(f"---")
+        st.subheader(f"📄 Page {idx + 1}: {step['desc']} ──► `{filename}`")
+        
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image(page, use_container_width=True)
+        with col2:
+            if filename in processed_images:
+                size_kb = len(processed_images[filename]) / 1024
+                st.success(f"⚡ Compressed size: **{size_kb:.2f} KB**")
+            st.caption(f"Allowed: {rules['min_kb']}-{rules['max_kb']} KB | Dimensions: {rules['dims'][0]}x{rules['dims'][1]}px")
+            
+            if filename in processed_images:
+                st.download_button(
+                    label=f"⬇️ Download {filename} Individually",
+                    data=processed_images[filename],
+                    file_name=filename,
+                    mime="image/jpeg",
+                    key=f"btn_{idx}"
+                )
