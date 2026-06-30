@@ -7,9 +7,9 @@ import re
 from datetime import datetime
 
 # Page Configuration
-st.set_page_config(page_title="Haj Dynamic Doc Optimizer", page_icon="🕋", layout="centered")
+st.set_page_config(page_title="Haj Auto Doc Optimizer", page_icon="🕋", layout="centered")
 st.title("🕋 Haj 2027 Bulk Document Optimizer")
-st.write("Configure the number of pilgrims, upload the PDF, and download perfectly named, compliant files.")
+st.write("Upload your bulk Adobe Scan PDF. The app will automatically detect the number of pilgrims and process everything.")
 
 # Rule Configurations
 RULES_PP = {"min_kb": 100, "max_kb": 500, "dims": (1200, 800), "label": "Passport Scanned copy"}
@@ -43,23 +43,6 @@ def compress_image_to_target(img, rules):
         
     return best_buffer
 
-# 1. Ask how many pilgrims are in this cover group
-num_pilgrims = st.number_input("How many pilgrims are in this scan?", min_value=1, max_value=5, value=2, step=1)
-
-# 2. Dynamically build the expected sequence mapping based on your exact scanning order
-expected_sequence = []
-for p in range(1, num_pilgrims + 1):
-    expected_sequence.append({"filename": f"{p}PP1.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 1"})
-    expected_sequence.append({"filename": f"{p}PP2.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 2"})
-
-for p in range(1, num_pilgrims + 1):
-    expected_sequence.append({"filename": f"{p}PIC.jpg", "rules": RULES_PIC, "desc": f"Pilgrim {p} Photograph"})
-
-expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
-
-total_expected_pages = len(expected_sequence)
-st.info(f"📋 For **{num_pilgrims} pilgrims**, the app expects a **{total_expected_pages}-page PDF** in your exact scan order.")
-
 # File Upload UI
 uploaded_file = st.file_uploader("Upload Bulk Adobe Scan PDF", type=["pdf"])
 
@@ -81,8 +64,26 @@ if uploaded_file is not None:
     total_pages = len(pages)
     st.success(f"Successfully loaded {total_pages} pages!")
     
-    if total_pages != total_expected_pages:
-        st.error(f"⚠️ Page count mismatch! The PDF has {total_pages} pages, but we expected exactly {total_expected_pages}. Please check if a page was skipped.")
+    # AUTOMATED PREDICTION MATH
+    # Calculate pilgrims based on: (Total Pages - 1 Cheque) / 3 documents per pilgrim
+    if total_pages >= 4 and (total_pages - 1) % 3 == 0:
+        num_pilgrims = (total_pages - 1) // 3
+        st.info(f"📋 **Smart Detection:** Found exactly **{num_pilgrims} pilgrim(s)** in this document group sequence.")
+    else:
+        # Fallback math calculation if the scanner missed a page or added extra pages
+        num_pilgrims = max(1, round((total_pages - 1) / 3))
+        st.warning(f"⚠️ **Page Count Warning:** The PDF has {total_pages} pages, which doesn't perfectly fit a standard group structure. The app is guessing **{num_pilgrims} pilgrim(s)**. Please review individual pages carefully.")
+
+    # Dynamically build the expected sequence mapping based on your exact scanning order
+    expected_sequence = []
+    for p in range(1, num_pilgrims + 1):
+        expected_sequence.append({"filename": f"{p}PP1.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 1"})
+        expected_sequence.append({"filename": f"{p}PP2.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 2"})
+
+    for p in range(1, num_pilgrims + 1):
+        expected_sequence.append({"filename": f"{p}PIC.jpg", "rules": RULES_PIC, "desc": f"Pilgrim {p} Photograph"})
+
+    expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
 
     # Pre-process and compress all images into a dictionary for the ZIP archive
     processed_images = {}
@@ -138,7 +139,7 @@ if uploaded_file is not None:
     # Process individual pages display lower down for manual review
     for idx, page in enumerate(pages):
         if idx >= len(expected_sequence):
-            st.warning(f"⚠️ Page {idx + 1} is extra and exceeds configured sequence rules.")
+            st.warning(f"⚠️ Page {idx + 1} is extra and exceeds predicted sequence boundaries.")
             continue
             
         step = expected_sequence[idx]
