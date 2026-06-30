@@ -1,58 +1,64 @@
-// 1. Array of all passport and confirmation fields
-var targetFields = [
-    'passport_no', 'issue_place', 'issue_date', 'expiry_date', 'birth_date', 'applicant_first_name', 'applicant_last_name', 'birth_place', 
-    'c_passport_no', 'c_issue_place', 'c_issue_date', 'c_expiry_date', 'c_birth_date', 'c_applicant_first_name', 'c_applicant_last_name', 'c_birth_place'
-];
+const hcoiFieldPairs = {
+    // Passport Fields
+    'passport_no': 'c_passport_no',
+    'issue_place': 'c_issue_place',
+    'issue_date': 'c_issue_date',
+    'expiry_date': 'c_expiry_date',
+    'birth_date': 'c_birth_date',
+    'applicant_first_name': 'c_applicant_first_name',
+    'applicant_last_name': 'c_applicant_last_name',
+    'gender_name': 'c_gender_name',
+    'birth_place': 'c_birth_place',
+    
+    // Bank details fields (Works for Cheque or Passbook)
+    'account_holder_name': 'c_account_holder_name',
+    'bank_name': 'c_bank_name',
+    'account_number': 'c_account_number',
+    'ifsc_code': 'c_ifsc_code'
+};
 
-// 2. Function to completely break the page's restriction handlers
-function unlockEverything() {
-    targetFields.forEach(function(id) {
-        var $el = $('#' + id);
-        if ($el.length) {
-            // Forcefully unbind the website's restriction events
-            $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
+function runHcoiAutoMirrorEngine() {
+    Object.keys(hcoiFieldPairs).forEach(topId => {
+        const bottomId = hcoiFieldPairs[topId];
+        const topEl = document.getElementById(topId);
+        const bottomEl = document.getElementById(bottomId);
+
+        if (topEl && bottomEl) {
+            const currentVal = topEl.value;
             
-            // Re-allow highlighting/copying text via CSS
-            $el.css({
-                'user-select': 'text',
-                '-webkit-user-select': 'text',
-                '-moz-user-select': 'text',
-                '-ms-user-select': 'text'
-            });
-        }
-    });
+            if (currentVal && currentVal.trim() !== "" && bottomEl.value !== currentVal) {
+                // Force unlock the field completely
+                bottomEl.removeAttribute('readonly');
+                bottomEl.readOnly = false;
+                bottomEl.disabled = false;
+                bottomEl.style.backgroundColor = '#fff';
 
-    // Make sure the bottom confirmation date fields remain unlocked for pasting
-    var confirmDates = ['#c_issue_date', '#c_expiry_date', '#c_birth_date'];
-    confirmDates.forEach(function(selector) {
-        var $el = $(selector);
-        if ($el.length && $el.prop('readonly')) {
-            $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
+                // Pass the data down
+                bottomEl.value = currentVal;
+
+                // Handle age calculations dynamically
+                if (topId === 'birth_date' && typeof calculateAge === 'function') {
+                    try {
+                        const calculatedAge = calculateAge(currentVal);
+                        const ageBox = document.getElementById('c_age');
+                        if (ageBox) {
+                            ageBox.removeAttribute('readonly');
+                            ageBox.readOnly = false;
+                            ageBox.value = calculatedAge;
+                            $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+                        }
+                    } catch(e) {}
+                }
+
+                // Force validation updates
+                try {
+                    $('#frmedit').bootstrapValidator('revalidateField', $(bottomEl).attr('name'));
+                } catch(e) {}
+            }
         }
     });
 }
 
-// 3. Run immediately
-unlockEverything();
-
-// 4. CRITICAL: Whenever a user clicks, types, or switches fields, instantly kill any newly applied restrictions
-$(document).on('focus click input change keyup paste select', 'input, select, textarea', function() {
-    unlockEverything();
-});
-
-// 5. Safely handle age auto-calculations when pasting into the confirmation birth date field
-$(document).on('blur input change keyup paste', '#c_birth_date', function() {
-    var val = $(this).val();
-    if (val.includes('-')) {
-        try {
-            var calculatedAge = calculateAge(val);
-            $('#c_age').val(calculatedAge);
-            $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
-        } catch(e) {}
-    }
-    try {
-        $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
-    } catch(e) {}
-});
-
-console.log("🛡️ Permanent Bypass Active. The website can no longer lock copy-paste when moving between fields!");
+if (window.hcoiMirrorInterval) { clearInterval(window.hcoiMirrorInterval); }
+window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
+console.log("🚀 Complete Passbook & Cheque Engine Running smoothly!");
