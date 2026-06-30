@@ -21,9 +21,6 @@
         'bank_name': 'c_bank_name',
         'account_number': 'c_account_number',
         'ifsc_code': 'c_ifsc_code'
-        
-        // 💡 Tip: If you want to add Nominee fields in the future, add them here like this:
-        // 'nominee_name': 'c_nominee_name'
     };
 
     // Flatten all IDs into a single list for the Security Unlocker
@@ -32,11 +29,11 @@
         return acc;
     }, []);
 
-    // Additional date selectors that must explicitly stay unlocked
-    const confirmDates = ['#c_issue_date', '#c_expiry_date', '#c_birth_date'];
+    // Specific date selectors that need deep calendar bypasses
+    const allDateFields = ['#issue_date', '#expiry_date', '#birth_date', '#c_issue_date', '#c_expiry_date', '#c_birth_date'];
 
     // =========================================================================
-    // 2. ENGINE 1: THE SECURITY UNLOCKER (Bypasses Restrictions)
+    // 2. ENGINE 1: THE SECURITY UNLOCKER (Bypasses Restrictions & Date Pickers)
     // =========================================================================
     function unlockEverything() {
         targetFields.forEach(function(id) {
@@ -55,11 +52,20 @@
             }
         });
 
-        // Make sure confirmation date fields remain unlocked for pasting
-        confirmDates.forEach(function(selector) {
+        // 🌟 FIX FOR DATE FIELDS: Force-kill calendar lockdown events
+        allDateFields.forEach(function(selector) {
             var $el = $(selector);
-            if ($el.length && $el.prop('readonly')) {
+            if ($el.length) {
+                // Remove readonly attributes entirely
                 $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
+                
+                // Destroy any bound bootstrap datepicker settings that block typing
+                if (typeof $el.datepicker === 'function') {
+                    try { $el.datepicker('destroy'); } catch(e) {}
+                }
+                
+                // Unbind common calendar blocking events (like keydown/keypress blocks)
+                $el.off('keydown keypress keyup focus click change');
             }
         });
     }
@@ -142,5 +148,5 @@
     }
     window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
 
-    console.log("🛡️🚀 Ultimate Unified Engine Active: Anti-Lock Bypass & Auto-Mirror running smoothly!");
+    console.log("🛡️🚀 Ultimate Unified Engine Active: Calendar Bypass & Auto-Mirror running smoothly!");
 })();
