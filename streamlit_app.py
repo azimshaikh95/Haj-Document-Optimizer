@@ -10,23 +10,18 @@ import os
 # Page Configuration
 st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="centered")
 
-# --- SIDEBAR SHORTCUTS ---
+# --- SIDEBAR SHORTCUTS (CLEAN LINKS) ---
 with st.sidebar:
     st.markdown("## 🌐 Official Portals")
     st.write("Click below to open pages in a new tab:")
     
+    # Removed black boxes, replaced with crisp modern links
     st.markdown("""
-        <a href="https://hajcommittee.gov.in/registration" target="_blank" style="text-decoration: none;">
-            <div style="background-color: #1E1E1E; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px; font-weight: bold; border: 1px solid #333333;">
-                📝 Registration Form
-            </div>
-        </a>
-        <a href="https://hajcommittee.gov.in/login" target="_blank" style="text-decoration: none;">
-            <div style="background-color: #1E1E1E; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: bold; border: 1px solid #333333;">
-                🔑 Login Page
-            </div>
-        </a>
-        <hr style="margin-top: 10px; margin-bottom: 20px; border-color: #333333;">
+        <div style="padding-left: 5px; line-height: 2.0;">
+            <p>🔗 <a href="https://hajcommittee.gov.in/registration" target="_blank" style="font-weight: bold; font-size: 16px; text-decoration: underline;">Registration Form</a></p>
+            <p>🔗 <a href="https://hajcommittee.gov.in/login" target="_blank" style="font-weight: bold; font-size: 16px; text-decoration: underline;">Login Page</a></p>
+        </div>
+        <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #333333;">
     """, unsafe_allow_html=True)
 
 # Main Application Title
