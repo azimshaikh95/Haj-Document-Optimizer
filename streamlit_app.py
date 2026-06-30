@@ -7,8 +7,32 @@ import re
 from datetime import datetime
 
 # Page Configuration
-st.set_page_config(page_title="Haj Auto Doc Optimizer", page_icon="🕋", layout="centered")
-st.title("🕋 Haj 2027 Bulk Document Optimizer")
+st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="centered")
+
+# --- SIDEBAR SHORTCUTS ---
+with st.sidebar:
+    st.markdown("## 🌐 Official Portals")
+    st.write("Click below to open pages in a new tab:")
+    
+    # Custom styled sidebar links that act like buttons
+    st.markdown("""
+        <a href="https://hajcommittee.gov.in/registration" target="_blank" style="text-decoration: none;">
+            <div style="background-color: #1E1E1E; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px; font-weight: bold; border: 1px solid #333333;">
+                📝 Registration Form
+            </div>
+        </a>
+        <a href="https://hajcommittee.gov.in/login" target="_blank" style="text-decoration: none;">
+            <div style="background-color: #1E1E1E; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: bold; border: 1px solid #333333;">
+                🔑 Login Page
+            </div>
+        </a>
+        <hr style="margin-top: 10px; margin-bottom: 20px; border-color: #333333;">
+    """, unsafe_allow_html=True)
+    
+    st.info("💡 Tip: Upload the bulk Adobe Scan PDF here first, download the ZIP file, and then use the links above to upload them directly to the Haj portal.")
+
+# Main Application Title
+st.title("🕋 Haj 2027 Document Optimizer")
 st.write("Upload your bulk Adobe Scan PDF. The app will automatically detect the number of pilgrims and process everything.")
 
 # Rule Configurations
@@ -65,12 +89,10 @@ if uploaded_file is not None:
     st.success(f"Successfully loaded {total_pages} pages!")
     
     # AUTOMATED PREDICTION MATH
-    # Calculate pilgrims based on: (Total Pages - 1 Cheque) / 3 documents per pilgrim
     if total_pages >= 4 and (total_pages - 1) % 3 == 0:
         num_pilgrims = (total_pages - 1) // 3
         st.info(f"📋 **Smart Detection:** Found exactly **{num_pilgrims} pilgrim(s)** in this document group sequence.")
     else:
-        # Fallback math calculation if the scanner missed a page or added extra pages
         num_pilgrims = max(1, round((total_pages - 1) / 3))
         st.warning(f"⚠️ **Page Count Warning:** The PDF has {total_pages} pages, which doesn't perfectly fit a standard group structure. The app is guessing **{num_pilgrims} pilgrim(s)**. Please review individual pages carefully.")
 
