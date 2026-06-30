@@ -1,5 +1,5 @@
 # ZIP Download All Button placed at the top
-    if processed_images:
+if processed_images:
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for filename, img_bytes in processed_images.items():
