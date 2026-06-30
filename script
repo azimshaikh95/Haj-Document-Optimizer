@@ -1,64 +1,146 @@
-const hcoiFieldPairs = {
-    // Passport Fields
-    'passport_no': 'c_passport_no',
-    'issue_place': 'c_issue_place',
-    'issue_date': 'c_issue_date',
-    'expiry_date': 'c_expiry_date',
-    'birth_date': 'c_birth_date',
-    'applicant_first_name': 'c_applicant_first_name',
-    'applicant_last_name': 'c_applicant_last_name',
-    'gender_name': 'c_gender_name',
-    'birth_place': 'c_birth_place',
+(function() {
+    // =========================================================================
+    // 1. CONFIGURATION & MAPPING
+    // =========================================================================
     
-    // Bank details fields (Works for Cheque or Passbook)
-    'account_holder_name': 'c_account_holder_name',
-    'bank_name': 'c_bank_name',
-    'account_number': 'c_account_number',
-    'ifsc_code': 'c_ifsc_code'
-};
+    // Field pairs for the Auto-Mirror Engine (Top Field ID -> Bottom Confirmation Field ID)
+    const hcoiFieldPairs = {
+        // Passport Fields
+        'passport_no': 'c_passport_no',
+        'issue_place': 'c_issue_place',
+        'issue_date': 'c_issue_date',
+        'expiry_date': 'c_expiry_date',
+        'birth_date': 'c_birth_date',
+        'applicant_first_name': 'c_applicant_first_name',
+        'applicant_last_name': 'c_applicant_last_name',
+        'gender_name': 'c_gender_name',
+        'birth_place': 'c_birth_place',
+        
+        // Bank details fields
+        'account_holder_name': 'c_account_holder_name',
+        'bank_name': 'c_bank_name',
+        'account_number': 'c_account_number',
+        'ifsc_code': 'c_ifsc_code'
+        
+        // 💡 Tip: If you want to add Nominee fields in the future, add them here like this:
+        // 'nominee_name': 'c_nominee_name'
+    };
 
-function runHcoiAutoMirrorEngine() {
-    Object.keys(hcoiFieldPairs).forEach(topId => {
-        const bottomId = hcoiFieldPairs[topId];
-        const topEl = document.getElementById(topId);
-        const bottomEl = document.getElementById(bottomId);
+    // Flatten all IDs into a single list for the Security Unlocker
+    const targetFields = Object.keys(hcoiFieldPairs).reduce((acc, key) => {
+        acc.push(key, hcoiFieldPairs[key]);
+        return acc;
+    }, []);
 
-        if (topEl && bottomEl) {
-            const currentVal = topEl.value;
-            
-            if (currentVal && currentVal.trim() !== "" && bottomEl.value !== currentVal) {
-                // Force unlock the field completely
-                bottomEl.removeAttribute('readonly');
-                bottomEl.readOnly = false;
-                bottomEl.disabled = false;
-                bottomEl.style.backgroundColor = '#fff';
+    // Additional date selectors that must explicitly stay unlocked
+    const confirmDates = ['#c_issue_date', '#c_expiry_date', '#c_birth_date'];
 
-                // Pass the data down
-                bottomEl.value = currentVal;
+    // =========================================================================
+    // 2. ENGINE 1: THE SECURITY UNLOCKER (Bypasses Restrictions)
+    // =========================================================================
+    function unlockEverything() {
+        targetFields.forEach(function(id) {
+            var $el = $('#' + id);
+            if ($el.length) {
+                // Forcefully unbind the website's restriction events
+                $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
+                
+                // Re-allow highlighting/copying text via CSS
+                $el.css({
+                    'user-select': 'text',
+                    '-webkit-user-select': 'text',
+                    '-moz-user-select': 'text',
+                    '-ms-user-select': 'text'
+                });
+            }
+        });
 
-                // Handle age calculations dynamically
-                if (topId === 'birth_date' && typeof calculateAge === 'function') {
+        // Make sure confirmation date fields remain unlocked for pasting
+        confirmDates.forEach(function(selector) {
+            var $el = $(selector);
+            if ($el.length && $el.prop('readonly')) {
+                $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
+            }
+        });
+    }
+
+    // =========================================================================
+    // 3. ENGINE 2: THE AUTO-MIRROR & CALCULATION ENGINE
+    // =========================================================================
+    function runHcoiAutoMirrorEngine() {
+        Object.keys(hcoiFieldPairs).forEach(topId => {
+            const bottomId = hcoiFieldPairs[topId];
+            const topEl = document.getElementById(topId);
+            const bottomEl = document.getElementById(bottomId);
+
+            if (topEl && bottomEl) {
+                const currentVal = topEl.value;
+                
+                if (currentVal && currentVal.trim() !== "" && bottomEl.value !== currentVal) {
+                    // Force unlock the target bottom field completely
+                    bottomEl.removeAttribute('readonly');
+                    bottomEl.readOnly = false;
+                    bottomEl.disabled = false;
+                    bottomEl.style.backgroundColor = '#fff';
+
+                    // Pass the data down automatically
+                    bottomEl.value = currentVal;
+
+                    // Handle age calculations dynamically if birth_date changes
+                    if (topId === 'birth_date' && typeof calculateAge === 'function') {
+                        try {
+                            const calculatedAge = calculateAge(currentVal);
+                            const ageBox = document.getElementById('c_age');
+                            if (ageBox) {
+                                ageBox.removeAttribute('readonly');
+                                ageBox.readOnly = false;
+                                ageBox.value = calculatedAge;
+                                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+                            }
+                        } catch(e) {}
+                    }
+
+                    // Force validation updates so form acknowledges the mirrored data
                     try {
-                        const calculatedAge = calculateAge(currentVal);
-                        const ageBox = document.getElementById('c_age');
-                        if (ageBox) {
-                            ageBox.removeAttribute('readonly');
-                            ageBox.readOnly = false;
-                            ageBox.value = calculatedAge;
-                            $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
-                        }
+                        $('#frmedit').bootstrapValidator('revalidateField', $(bottomEl).attr('name'));
                     } catch(e) {}
                 }
-
-                // Force validation updates
-                try {
-                    $('#frmedit').bootstrapValidator('revalidateField', $(bottomEl).attr('name'));
-                } catch(e) {}
             }
-        }
-    });
-}
+        });
+    }
 
-if (window.hcoiMirrorInterval) { clearInterval(window.hcoiMirrorInterval); }
-window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
-console.log("🚀 Complete Passbook & Cheque Engine Running smoothly!");
+    // =========================================================================
+    // 4. EXECUTION & INITIALIZATION
+    // =========================================================================
+    
+    // Run the unlocker immediately
+    unlockEverything();
+
+    // CRITICAL: Whenever a user interacts with the page, instantly kill any fresh restrictions
+    $(document).on('focus click input change keyup paste select', 'input, select, textarea', function() {
+        unlockEverything();
+    });
+
+    // Also manually catch the manual edge case for c_birth_date validation
+    $(document).on('blur input change keyup paste', '#c_birth_date', function() {
+        var val = $(this).val();
+        if (val && val.includes('-')) {
+            try {
+                var calculatedAge = calculateAge(val);
+                $('#c_age').val(calculatedAge);
+                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+            } catch(e) {}
+        }
+        try {
+            $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
+        } catch(e) {}
+    });
+
+    // Setup the Background Mirror Timer (runs every 300ms)
+    if (window.hcoiMirrorInterval) { 
+        clearInterval(window.hcoiMirrorInterval); 
+    }
+    window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
+
+    console.log("🛡️🚀 Ultimate Unified Engine Active: Anti-Lock Bypass & Auto-Mirror running smoothly!");
+})();
