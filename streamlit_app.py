@@ -10,17 +10,40 @@ import os
 # Page Configuration
 st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="centered")
 
-# --- SIDEBAR SHORTCUTS (CLEAN LINKS) ---
+# --- SIDEBAR SHORTCUTS (NATIVE OUTLINE BUTTON STYLE) ---
 with st.sidebar:
     st.markdown("## 🌐 Official Portals")
     st.write("Click below to open pages in a new tab:")
     
-    # Removed black boxes, replaced with crisp modern links
+    # Styled exactly like clean, native outline button components
     st.markdown("""
-        <div style="padding-left: 5px; line-height: 2.0;">
-            <p>🔗 <a href="https://hajcommittee.gov.in/registration" target="_blank" style="font-weight: bold; font-size: 16px; text-decoration: underline;">Registration Form</a></p>
-            <p>🔗 <a href="https://hajcommittee.gov.in/login" target="_blank" style="font-weight: bold; font-size: 16px; text-decoration: underline;">Login Page</a></p>
-        </div>
+        <style>
+            .sidebar-btn {
+                display: block !important;
+                text-align: center !important;
+                background-color: transparent !important;
+                color: #FAFAFA !important;
+                border: 1px solid rgba(250, 250, 250, 0.2) !important;
+                padding: 8px 16px !important;
+                border-radius: 8px !important;
+                text-decoration: none !important;
+                font-size: 14px !important;
+                margin-bottom: 12px !important;
+                transition: background-color 0.2s, border-color 0.2s !important;
+            }
+            .sidebar-btn:hover {
+                background-color: rgba(250, 250, 250, 0.05) !important;
+                border-color: rgba(250, 250, 250, 0.4) !important;
+                text-decoration: none !important;
+            }
+        </style>
+        
+        <a class="sidebar-btn" href="https://hajcommittee.gov.in/registration" target="_blank">
+            📝 Registration Form
+        </a>
+        <a class="sidebar-btn" href="https://hajcommittee.gov.in/login" target="_blank">
+            🔑 Login Page
+        </a>
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #333333;">
     """, unsafe_allow_html=True)
 
