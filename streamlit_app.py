@@ -10,7 +10,7 @@ import os
 # Page Configuration
 st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="centered")
 
-# --- SIDEBAR SHORTCUTS & GUIDELINES ---
+# --- SIDEBAR SHORTCUTS & POPUP MODAL ---
 with st.sidebar:
     st.markdown("## 🌐 Official Portals")
     
@@ -29,13 +29,58 @@ with st.sidebar:
         <hr style="margin-top: 10px; margin-bottom: 20px; border-color: #333333;">
     """, unsafe_allow_html=True)
     
-    # NEW: Guidelines Tab loaded dynamically from guidelines.md
-    with st.expander("📋 Scanning Guidelines", expanded=False):
-        if os.path.exists("guidelines.md"):
-            with open("guidelines.md", "r", encoding="utf-8") as f:
-                st.markdown(f.read())
-        else:
-            st.warning("guidelines.md file not found in repo.")
+    st.markdown("## 📖 Instructions")
+    # Native button that handles the modal popup state change
+    show_guidelines = st.button("📋 View Scanning Guidelines", use_container_width=True)
+
+# --- POPUP MODAL LOGIC & STYLING ---
+if show_guidelines:
+    guidelines_content = ""
+    if os.path.exists("guidelines.md"):
+        with open("guidelines.md", "r", encoding="utf-8") as f:
+            guidelines_content = f.read()
+    else:
+        guidelines_content = "⚠️ `guidelines.md` file not found in repository."
+
+    # Convert markdown guidelines into HTML strings so it formats inside the popup
+    import markdown
+    html_guidelines = markdown.markdown(guidelines_content)
+
+    # Injected HTML/CSS to construct a true center overlay popup frame
+    st.markdown(f"""
+        <div style="
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 999990;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            <div style="
+                background-color: #0E1117;
+                color: #FAFAFA;
+                padding: 30px;
+                border-radius: 12px;
+                border: 2px solid #333333;
+                width: 90%;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                position: relative;
+            ">
+                <div style="text-align: right; font-size: 14px; color: #888888; margin-bottom: -10px;">
+                    <i>Click anywhere outside on the sidebar menu or refresh to close</i>
+                </div>
+                {html_guidelines}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Simple close button right under the modal layout
+    if st.button("❌ Close Guidelines Window", use_container_width=True):
+        st.rerun()
 
 # Main Application Title
 st.title("🕋 Haj 2027 Document Optimizer")
