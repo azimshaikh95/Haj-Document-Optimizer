@@ -20,9 +20,9 @@ with st.sidebar:
             .sidebar-btn {
                 display: block !important;
                 text-align: center !important;
-                background-color: #FFFFFF !important;
-                color: #262730 !important;
-                border: 1px solid #D3D6DF !important;
+                background-color: #FFFFFF !important;    /* Crisp white background */
+                color: #262730 !important;              /* Dark text for perfect readability */
+                border: 1px solid #D3D6DF !important;    /* Soft gray border matching the Upload button */
                 padding: 10px 16px !important;
                 border-radius: 8px !important;
                 text-decoration: none !important;
@@ -33,8 +33,8 @@ with st.sidebar:
                 transition: background-color 0.2s, border-color 0.2s !important;
             }
             .sidebar-btn:hover {
-                background-color: #F8F9FA !important;
-                border-color: #A3A8B8 !important;
+                background-color: #F8F9FA !important;    /* Subtle light gray shift on hover */
+                border-color: #A3A8B8 !important;        /* Darker border on hover */
                 color: #262730 !important;
                 text-decoration: none !important;
             }
@@ -59,6 +59,7 @@ tab1, tab2, tab3 = st.tabs(["🚀 Document Processor", "📋 Scanning Guidelines
 # TAB 1: CORE APPLICATION WORKFLOW
 # ==========================================
 with tab1:
+    # Rule Configurations
     RULES_PP = {"min_kb": 100, "max_kb": 500, "dims": (1200, 800), "label": "Passport Scanned copy"}
     RULES_PIC = {"min_kb": 5, "max_kb": 20, "dims": (480, 640), "label": "Passport Size Photograph"}
     RULES_BANK = {"min_kb": 80, "max_kb": 250, "dims": (750, 500), "label": "Bank Cheque"}
@@ -214,66 +215,21 @@ with tab2:
         st.warning("⚠️ `guidelines.md` file not found in your GitHub repository.")
 
 # ==========================================
-# TAB 3: VOLUNTEER BYPASS SCRIPT TAB
+# TAB 3: VOLUNTEER BYPASS SCRIPT TAB (READS DYNAMICALLY FROM 'script')
 # ==========================================
 with tab3:
     st.markdown("### ⚡ Browser Form Unlock Utility")
     st.write("Copy this code and run it in your browser console on the Haj panel to unlock copy/paste blocks and automate age validation queries.")
     
-    bypass_code = """// 1. Strip the copy/paste/cut restrictions from ALL text fields
-var sensitiveFields = [
-    'passport_no', 'issue_place', 'issue_date', 'expiry_date', 'birth_date', 'applicant_first_name', 'applicant_last_name', 'birth_place', 
-    'c_passport_no', 'c_issue_place', 'c_issue_date', 'c_expiry_date', 'c_birth_date', 'c_applicant_first_name', 'c_applicant_last_name', 'c_birth_place',
-    'account_holder_name', 'bank_name', 'account_number', 'ifsc_code',
-    'c_account_holder_name', 'c_bank_name', 'c_account_number', 'c_ifsc_code'
-];
-
-sensitiveFields.forEach(function(id) {
-    var $el = $('#' + id);
-    if ($el.length) {
-        $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
-    }
-});
-
-// 2. Unlock date fields safely and wire them to the site's calculation rules
-var dateFields = ['#issue_date', '#expiry_date', '#birth_date', '#c_issue_date', '#c_expiry_date', '#c_birth_date'];
-
-dateFields.forEach(function(selector) {
-    var $el = $(selector);
-    if ($el.length) {
-        $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
-        $el.off('paste drop contextmenu');
-
-        $el.on('blur input change keyup paste', function() {
-            var fieldId = $(this).attr('id');
-            var val = $(this).val();
-
-            if ((fieldId === 'birth_date' || fieldId === 'c_birth_date') && val.includes('-')) {
-                try {
-                    var calculatedAge = calculateAge(val);
-                    if (fieldId === 'birth_date') {
-                        $('#age').val(calculatedAge);
-                        $('#frmedit').bootstrapValidator('revalidateField', 'age');
-                    } else {
-                        $('#c_age').val(calculatedAge);
-                        $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
-                    }
-                } catch(e) {
-                    console.log("Age engine bypass update active.");
-                }
-            }
-
-            try {
-                $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
-            } catch(e) {}
-        });
-    }
-});
-
-console.log("✅ Safe Patch Applied. Paste dates freely; the system will safely auto-calculate age.");"""
-
-    # Displays a code preview box with a native copy button built into the upper-right corner
-    st.code(bypass_code, language="javascript")
+    # NEW: Dynamically loads the bypass script from your dedicated file named 'script'
+    if os.path.exists("script"):
+        with open("script", "r", encoding="utf-8") as f:
+            bypass_code = f.read()
+            
+        # Displays the script container with its native "Copy" widget active
+        st.code(bypass_code, language="javascript")
+    else:
+        st.warning("⚠️ Separate `script` file was not found in your GitHub repository folder layout.")
     
     st.markdown("""
     ---
