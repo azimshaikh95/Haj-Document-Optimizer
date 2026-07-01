@@ -12,10 +12,7 @@ st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="cen
 
 # --- SIDEBAR SHORTCUTS (MATCHING NATIVE UPLOAD BUTTON STYLE) ---
 with st.sidebar:
-    st.markdown("## 🌐 Official Portals")
-    st.write("Click below to open pages in a new tab:")
-    
-    # Styled CSS to match the crisp native white upload button style
+    # Global Sidebar Button Styling
     st.markdown("""
         <style>
             .sidebar-btn {
@@ -39,8 +36,18 @@ with st.sidebar:
                 color: #262730 !important;
                 text-decoration: none !important;
             }
+            .sidebar-section-title {
+                margin-top: 15px !important;
+                margin-bottom: 5px !important;
+            }
         </style>
-        
+    """, unsafe_allow_html=True)
+
+    # Section 1: Official Portals
+    st.markdown("<h2 class='sidebar-section-title'>🌐 Official Portals</h2>", unsafe_allow_html=True)
+    st.write("Click below to open pages in a new tab:")
+    
+    st.markdown("""
         <a class="sidebar-btn" href="https://hajcommittee.gov.in/registration" target="_blank">
             📝 Registration Form
         </a>
@@ -50,6 +57,14 @@ with st.sidebar:
         <a class="sidebar-btn" href="https://gujarathajhouse.in/" target="_blank">
             🏢 Gujarat Haj House Website
         </a>
+        
+        <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
+    """, unsafe_allow_html=True)
+
+    # Section 2: Supportive Apps
+    st.markdown("<h2 class='sidebar-section-title'>🌐 Supportive Apps</h2>", unsafe_allow_html=True)
+    
+    st.markdown("""
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
             📩 Cover Information
         </a>
@@ -144,111 +159,4 @@ with tab1:
 
         expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
 
-        processed_images = {}
-        with st.spinner("Optimizing and compressing all files..."):
-            for idx, page in enumerate(pages):
-                if idx < len(expected_sequence):
-                    step = expected_sequence[idx]
-                    comp_bytes = compress_image_to_target(page, step["rules"])
-                    processed_images[step["filename"]] = comp_bytes
-
-        if processed_images:
-            zip_buffer = BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-                for filename, img_bytes in processed_images.items():
-                    zip_file.writestr(f"{folder_name}/{filename}", img_bytes)
-            
-            st.markdown("### 📥 Download All Work at Once")
-            
-            st.markdown("""
-                <style>
-                    div.stDownloadButton > button {
-                        background-color: #1E1E1E !important;
-                        color: #FFFFFF !important;
-                        border: 2px solid #333333 !important;
-                        padding: 15px 25px !important;
-                        font-size: 18px !important;
-                        font-weight: bold !important;
-                        border-radius: 8px !important;
-                        width: 100% !important;
-                        transition: all 0.3s ease !important;
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-                    }
-                    div.stDownloadButton > button:hover {
-                        background-color: #333333 !important;
-                        border-color: #4F4F4F !important;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
-            
-            st.download_button(
-                label=f"📦 Download All Images as ZIP ({zip_filename})",
-                data=zip_buffer.getvalue(),
-                file_name=zip_filename,
-                mime="application/zip",
-                key="big_zip_btn"
-            )
-
-        for idx, page in enumerate(pages):
-            if idx >= len(expected_sequence):
-                st.warning(f"⚠️ Page {idx + 1} is extra and exceeds predicted sequence boundaries.")
-                continue
-                
-            step = expected_sequence[idx]
-            filename = step["filename"]
-            rules = step["rules"]
-            
-            st.markdown(f"---")
-            st.subheader(f"📄 Page {idx + 1}: {step['desc']} ──► `{filename}`")
-            
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                st.image(page, use_container_width=True)
-            with col2:
-                if filename in processed_images:
-                    size_kb = len(processed_images[filename]) / 1024
-                    st.success(f"⚡ Compressed size: **{size_kb:.2f} KB**")
-                st.caption(f"Allowed: {rules['min_kb']}-{rules['max_kb']} KB | Dimensions: {rules['dims'][0]}x{rules['dims'][1]}px")
-                
-                if filename in processed_images:
-                    st.download_button(
-                        label=f"⬇️ Download {filename} Individually",
-                        data=processed_images[filename],
-                        file_name=filename,
-                        mime="image/jpeg",
-                        key=f"btn_{idx}"
-                    )
-
-# ==========================================
-# TAB 2: GUIDELINES TAB (READS DYNAMICALLY)
-# ==========================================
-with tab2:
-    st.write("Review the specific scanning order required to pass validation processes automatically.")
-    if os.path.exists("guidelines.md"):
-        with open("guidelines.md", "r", encoding="utf-8") as f:
-            st.markdown(f.read())
-    else:
-        st.warning("⚠️ `guidelines.md` file not found in your GitHub repository.")
-
-# ==========================================
-# TAB 3: FORM UNLOCKER TAB (READS DYNAMICALLY FROM 'script')
-# ==========================================
-with tab3:
-    st.markdown("### ⚡ Form Helper Script")
-    st.write("A simple tool to speed up data entry on the Haj portal. It removes copy/paste locks and syncs fields automatically.")
-    
-    if os.path.exists("script"):
-        with open("script", "r", encoding="utf-8") as f:
-            bypass_code = f.read()
-        st.code(bypass_code, language="javascript")
-    else:
-        st.warning("⚠️ Separate `script` file was not found in your GitHub repository folder layout.")
-    
-    st.markdown("""
-    ---
-    ### 🛠️ How to run this on the Haj Portal:
-    1. Click the **Copy icon** in the top right of the code window above.
-    2. Open the **Official Portal** via the sidebar links.
-    3. Right-click anywhere on the entry page and select **Inspect**, then go to the **Console** tab.
-    4. Paste the script (`Ctrl + V` or `Cmd + V`), press **Enter**, and close the inspection view.
-    """)
+        processed
