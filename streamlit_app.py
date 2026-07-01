@@ -49,7 +49,7 @@ with st.sidebar:
 
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
-                 <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
+        <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
             📩 Cover Information
         </a>
     
