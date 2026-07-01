@@ -15,14 +15,15 @@ with st.sidebar:
     st.markdown("## 🌐 Official Portals")
     st.write("Click below to open pages in a new tab:")
     
+    # Styled CSS to match the crisp native white upload button style
     st.markdown("""
         <style>
             .sidebar-btn {
                 display: block !important;
                 text-align: center !important;
-                background-color: #FFFFFF !important;
-                color: #262730 !important;
-                border: 1px solid #D3D6DF !important;
+                background-color: #FFFFFF !important;    /* Crisp white background */
+                color: #262730 !important;              /* Dark text for perfect readability */
+                border: 1px solid #D3D6DF !important;    /* Soft gray border matching the Upload button */
                 padding: 10px 16px !important;
                 border-radius: 8px !important;
                 text-decoration: none !important;
@@ -33,8 +34,8 @@ with st.sidebar:
                 transition: background-color 0.2s, border-color 0.2s !important;
             }
             .sidebar-btn:hover {
-                background-color: #F8F9FA !important;
-                border-color: #A3A8B8 !important;
+                background-color: #F8F9FA !important;    /* Subtle light gray shift on hover */
+                border-color: #A3A8B8 !important;        /* Darker border on hover */
                 color: #262730 !important;
                 text-decoration: none !important;
             }
@@ -46,13 +47,24 @@ with st.sidebar:
         <a class="sidebar-btn" href="https://hajcommittee.gov.in/login" target="_blank">
             🔑 Login Page
         </a>
-
-        <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
-    """, unsafe_allow_html=True)
+        <a class="sidebar-btn" href="https://gujarathajhouse.in/" target="_blank">
+            🏢 Gujarat Haj House Website
+        </a>
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
             📩 Cover Information
         </a>
-    
+        <a class="sidebar-btn" href="https://slip.hajsupport.com/" target="_blank">
+            📄 PaySlip Generator
+        </a>
+        <a class="sidebar-btn" href="https://medical.hajsupport.com/" target="_blank">
+            ⚕️ Medical Certificate Generator
+        </a>
+        <a class="sidebar-btn" href="https://stickers.hajsupport.com/" target="_blank">
+            🏷️ Luggage Stickers Generator
+        </a>
+        
+        <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
+    """, unsafe_allow_html=True)
 
 # Main Application Title
 st.title("🕋 Haj 2027 Document Optimizer")
