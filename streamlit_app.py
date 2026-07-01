@@ -46,8 +46,13 @@ with st.sidebar:
         <a class="sidebar-btn" href="https://hajcommittee.gov.in/login" target="_blank">
             🔑 Login Page
         </a>
+
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
+                 <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
+            📩 Cover Information
+        </a>
+    
 
 # Main Application Title
 st.title("🕋 Haj 2027 Document Optimizer")
