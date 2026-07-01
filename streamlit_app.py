@@ -58,7 +58,7 @@ with st.sidebar:
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
 
-    st.markdown("<h2 class='sidebar-section-title'>🌐 Supportive Apps</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sidebar-section-title'>🚀 Supportive Apps</h2>", unsafe_allow_html=True)
     
     st.markdown("""
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
