@@ -62,7 +62,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # Section 2: Supportive Apps
-    st.markdown("<h2 class='sidebar-section-title'>🌐 Supportive Apps</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sidebar-section-title'>🚀 Supportive Apps</h2>", unsafe_allow_html=True)
     
     st.markdown("""
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
