@@ -12,15 +12,14 @@ st.set_page_config(page_title="Haj Doc Optimizer", page_icon="🕋", layout="cen
 
 # --- SIDEBAR SHORTCUTS (MATCHING NATIVE UPLOAD BUTTON STYLE) ---
 with st.sidebar:
-    # Global Sidebar Button Styling
     st.markdown("""
         <style>
             .sidebar-btn {
                 display: block !important;
                 text-align: center !important;
-                background-color: #FFFFFF !important;    /* Crisp white background */
-                color: #262730 !important;              /* Dark text for perfect readability */
-                border: 1px solid #D3D6DF !important;    /* Soft gray border matching the Upload button */
+                background-color: #FFFFFF !important;
+                color: #262730 !important;
+                border: 1px solid #D3D6DF !important;
                 padding: 10px 16px !important;
                 border-radius: 8px !important;
                 text-decoration: none !important;
@@ -31,8 +30,8 @@ with st.sidebar:
                 transition: background-color 0.2s, border-color 0.2s !important;
             }
             .sidebar-btn:hover {
-                background-color: #F8F9FA !important;    /* Subtle light gray shift on hover */
-                border-color: #A3A8B8 !important;        /* Darker border on hover */
+                background-color: #F8F9FA !important;
+                border-color: #A3A8B8 !important;
                 color: #262730 !important;
                 text-decoration: none !important;
             }
@@ -43,7 +42,6 @@ with st.sidebar:
         </style>
     """, unsafe_allow_html=True)
 
-    # Section 1: Official Portals
     st.markdown("<h2 class='sidebar-section-title'>🌐 Official Portals</h2>", unsafe_allow_html=True)
     st.write("Click below to open pages in a new tab:")
     
@@ -57,12 +55,10 @@ with st.sidebar:
         <a class="sidebar-btn" href="https://gujarathajhouse.in/" target="_blank">
             🏢 Gujarat Haj House Website
         </a>
-        
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
 
-    # Section 2: Supportive Apps
-    st.markdown("<h2 class='sidebar-section-title'>🚀 Supportive Apps</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sidebar-section-title'>🌐 Supportive Apps</h2>", unsafe_allow_html=True)
     
     st.markdown("""
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
@@ -77,7 +73,6 @@ with st.sidebar:
         <a class="sidebar-btn" href="https://stickers.hajsupport.com/" target="_blank">
             🏷️ Luggage Stickers Generator
         </a>
-        
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
 
@@ -122,7 +117,6 @@ with tab1:
             
         return best_buffer
 
-    # File Upload UI
     uploaded_file = st.file_uploader("Upload Bulk Adobe Scan PDF", type=["pdf"])
 
     if uploaded_file is not None:
@@ -141,7 +135,6 @@ with tab1:
         total_pages = len(pages)
         st.success(f"Successfully loaded {total_pages} pages!")
         
-        # AUTOMATED PREDICTION MATH
         if total_pages >= 4 and (total_pages - 1) % 3 == 0:
             num_pilgrims = (total_pages - 1) // 3
             st.info(f"📋 **Smart Detection:** Found exactly **{num_pilgrims} pilgrim(s)** in this document group sequence.")
@@ -159,4 +152,189 @@ with tab1:
 
         expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
 
-        processed
+        processed_images = {}
+        with st.spinner("Optimizing and compressing all files..."):
+            for idx, page in enumerate(pages):
+                if idx < len(expected_sequence):
+                    step = expected_sequence[idx]
+                    comp_bytes = compress_image_to_target(page, step["rules"])
+                    processed_images[step["filename"]] = comp_bytes
+
+        if processed_images:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for filename, img_bytes in processed_images.items():
+                    zip_file.writestr(f"{folder_name}/{filename}", img_bytes)
+            
+            st.markdown("### 📥 Download All Work at Once")
+            
+            st.markdown("""
+                <style>
+                    div.stDownloadButton > button {
+                        background-color: #1E1E1E !important;
+                        color: #FFFFFF !important;
+                        border: 2px solid #333333 !important;
+                        padding: 15px 25px !important;
+                        font-size: 18px !important;
+                        font-weight: bold !important;
+                        border-radius: 8px !important;
+                        width: 100% !important;
+                        transition: all 0.3s ease !important;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+                    }
+                    div.stDownloadButton > button:hover {
+                        background-color: #333333 !important;
+                        border-color: #4F4F4F !important;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            st.download_button(
+                label=f"📦 Download All Images as ZIP ({zip_filename})",
+                data=zip_buffer.getvalue(),
+                file_name=zip_filename,
+                mime="application/zip",
+                key="big_zip_btn"
+            )
+
+        for idx, page in enumerate(pages):
+            if idx >= len(expected_sequence):
+                st.warning(f"⚠️ Page {idx + 1} is extra and exceeds predicted sequence boundaries.")
+                continue
+                
+            step = expected_sequence[idx]
+            filename = step["filename"]
+            rules = step["rules"]
+            
+            st.markdown(f"---")
+            st.subheader(f"📄 Page {idx + 1}: {step['desc']} ──► `{filename}`")
+            
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                st.image(page, use_container_width=True)
+            with col2:
+                if filename in processed_images:
+                    size_kb = len(processed_images[filename]) / 1024
+                    st.success(f"⚡ Compressed size: **{size_kb:.2f} KB**")
+                st.caption(f"Allowed: {rules['min_kb']}-{rules['max_kb']} KB | Dimensions: {rules['dims'][0]}x{rules['dims'][1]}px")
+                
+                if filename in processed_images:
+                    st.download_button(
+                        label=f"⬇️ Download {filename} Individually",
+                        data=processed_images[filename],
+                        file_name=filename,
+                        mime="image/jpeg",
+                        key=f"btn_{idx}"
+                    )
+
+# ==========================================
+# TAB 2: GUIDELINES TAB (WITH AUTO BACKUP)
+# ==========================================
+with tab2:
+    st.write("Review the specific scanning order required to pass validation processes automatically.")
+    
+    # Robust dynamic pathing check
+    parsed_guidelines = ""
+    for path in ["guidelines.md", "./guidelines.md"]:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                parsed_guidelines = f.read()
+            break
+            
+    if parsed_guidelines:
+        st.markdown(parsed_guidelines)
+    else:
+        # Hardcoded fallback mechanism so it can NEVER display blank screens
+        st.markdown("""
+        ### 🕋 Scanning Rules for Volunteers
+
+        #### 1. Before You Scan
+        * **Use Color:** Set your Adobe Scan filter to **"Original Color"**. *Black & white scans/photocopies are rejected.*
+        * **Clean Margins:** Place documents on a flat, dark background so the app edges crop cleanly.
+
+        #### 2. The Golden Scanning Sequence
+        Scan the entire cover group into **one single PDF file** in this exact order:
+        1. **Passports First:** Cover Head Passport Page 1 → Page 2, then Co-Pilgrims Page 1 → Page 2.
+        2. **Photographs Second:** Cover Head Photo → Co-Pilgrim Photos in order.
+        3. **Bank Details Last:** Scan **only one** Bank Cheque for the entire family group at the very end.
+
+        #### 3. Page Count Cheat Sheet
+        * **1 Pilgrim:** 4 pages total | **2 Pilgrims:** 7 pages total | **3 Pilgrims:** 10 pages total
+        """)
+
+# ==========================================
+# TAB 3: FORM UNLOCKER TAB (WITH AUTO BACKUP)
+# ==========================================
+with tab3:
+    st.markdown("### ⚡ Form Helper Script")
+    st.write("A simple tool to speed up data entry on the Haj portal. It removes copy/paste locks and syncs fields automatically.")
+    
+    parsed_script = ""
+    for path in ["script", "./script"]:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                parsed_script = f.read()
+            break
+            
+    if parsed_script:
+        st.code(parsed_script, language="javascript")
+    else:
+        # Backup script engine hardcoded injection
+        fallback_script = """// 1. Strip the copy/paste/cut restrictions from ALL text fields
+var sensitiveFields = [
+    'passport_no', 'issue_place', 'issue_date', 'expiry_date', 'birth_date', 'applicant_first_name', 'applicant_last_name', 'birth_place', 
+    'c_passport_no', 'c_issue_place', 'c_issue_date', 'c_expiry_date', 'c_birth_date', 'c_applicant_first_name', 'c_applicant_last_name', 'c_birth_place',
+    'account_holder_name', 'bank_name', 'account_number', 'ifsc_code',
+    'c_account_holder_name', 'c_bank_name', 'c_account_number', 'c_ifsc_code'
+];
+
+sensitiveFields.forEach(function(id) {
+    var $el = $('#' + id);
+    if ($el.length) {
+        $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
+    }
+});
+
+// 2. Unlock date fields safely and wire them to the site's calculation rules
+var dateFields = ['#issue_date', '#expiry_date', '#birth_date', '#c_issue_date', '#c_expiry_date', '#c_birth_date'];
+
+dateFields.forEach(function(selector) {
+    var $el = $(selector);
+    if ($el.length) {
+        $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
+        $el.off('paste drop contextmenu');
+
+        $el.on('blur input change keyup paste', function() {
+            var fieldId = $(this).attr('id');
+            var val = $(this).val();
+
+            if ((fieldId === 'birth_date' || fieldId === 'c_birth_date') && val.includes('-')) {
+                try {
+                    var calculatedAge = calculateAge(val);
+                    if (fieldId === 'birth_date') {
+                        $('#age').val(calculatedAge);
+                        $('#frmedit').bootstrapValidator('revalidateField', 'age');
+                    } else {
+                        $('#c_age').val(calculatedAge);
+                        $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+                    }
+                } catch(e) {}
+            }
+            try {
+                $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
+            } catch(e) {}
+        });
+    }
+});
+
+console.log("✅ Safe Patch Applied. Paste dates freely; the system will safely auto-calculate age.");"""
+        st.code(fallback_script, language="javascript")
+    
+    st.markdown("""
+    ---
+    ### 🛠️ How to run this on the Haj Portal:
+    1. Click the **Copy icon** in the top right of the code window above.
+    2. Open the **Official Portal** via the sidebar links.
+    3. Right-click anywhere on the entry page and select **Inspect**, then go to the **Console** tab.
+    4. Paste the script (`Ctrl + V` or `Cmd + V`), press **Enter**, and close the inspection view.
+    """)
