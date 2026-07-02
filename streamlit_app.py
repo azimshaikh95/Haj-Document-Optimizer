@@ -339,4 +339,18 @@ with tab4:
 })();"""
         st.code(fallback_developer_text, language="javascript")
         
+    st.markdown("""
+    ---
+    ### 🏃‍♂️ How to Run the Raw Script Manually:
+    
+    If a volunteer is having trouble with the bookmarklet or prefers using the developer options directly, they can copy and inject this code manually on every new page load:
+    
+    1. **Copy the Code:** Click the **Copy icon** in the top-right corner of the code block above.
+    2. **Open the Haj Portal:** Navigate to the candidate registration page where you need to enter data.
+    3. **Open Developer Console:** * Press **F12** (or **Ctrl + Shift + I** on Windows / **Cmd + Option + I** on Mac).
+       * Click on the **Console** tab at the top of the panel that opens.
+    4. **Paste and Execute:** Click inside the console line, paste the code (`Ctrl + V` or `Cmd + V`), and press **Enter**.
+    5. **Close and Type:** You can close the developer panel by pressing **F12** again. Copy-paste locks are now removed, and fields will sync automatically as you type!
+    """)
+    
     st.info("ℹ️ This clean source text is provided for tracking updates or pushing individual components to a GitHub repository codebase.")
