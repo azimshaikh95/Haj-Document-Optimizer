@@ -58,7 +58,7 @@ with st.sidebar:
         <hr style="margin-top: 20px; margin-bottom: 20px; border-color: #D3D6DF;">
     """, unsafe_allow_html=True)
 
-    st.markdown("<h2 class='sidebar-section-title'>🚀 Supportive Apps</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sidebar-section-title'>🌐 Supportive Apps</h2>", unsafe_allow_html=True)
     
     st.markdown("""
         <a class="sidebar-btn" href="https://cover.gujarathajhouse.in" target="_blank">
@@ -129,4 +129,326 @@ with tab1:
         clean_name = re.sub(r'[^a-zA-Z0-9]', '-', raw_name).strip('-')
         clean_name = re.sub(r'-+', '-', clean_name)
         
-        current_date = datetime.now().strftime("%d-%m-%y
+        current_date = datetime.now().strftime("%d-%m-%y")
+        folder_name = f"{current_date}-{clean_name}"
+        zip_filename = f"{folder_name}.zip"
+
+        with st.spinner("Converting bulk PDF into pages..."):
+            file_bytes = uploaded_file.read()
+            pages = convert_from_bytes(file_bytes)
+        
+        total_pages = len(pages)
+        st.success(f"Successfully loaded {total_pages} pages!")
+        
+        if total_pages >= 4 and (total_pages - 1) % 3 == 0:
+            num_pilgrims = (total_pages - 1) // 3
+            st.info(f"📋 **Smart Detection:** Found exactly **{num_pilgrims} pilgrim(s)** in this document group sequence.")
+        else:
+            num_pilgrims = max(1, round((total_pages - 1) / 3))
+            st.warning(f"⚠️ **Page Count Warning:** The PDF has {total_pages} pages, which doesn't perfectly fit a standard group structure. The app is guessing **{num_pilgrims} pilgrim(s)**. Please review individual pages carefully.")
+
+        expected_sequence = []
+        for p in range(1, num_pilgrims + 1):
+            expected_sequence.append({"filename": f"{p}PP1.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 1"})
+            expected_sequence.append({"filename": f"{p}PP2.jpg", "rules": RULES_PP, "desc": f"Pilgrim {p} Passport Page 2"})
+
+        for p in range(1, num_pilgrims + 1):
+            expected_sequence.append({"filename": f"{p}PIC.jpg", "rules": RULES_PIC, "desc": f"Pilgrim {p} Photograph"})
+
+        expected_sequence.append({"filename": "BANK.jpg", "rules": RULES_BANK, "desc": "Cover Group Bank Cheque"})
+
+        processed_images = {}
+        with st.spinner("Optimizing and compressing all files..."):
+            for idx, page in enumerate(pages):
+                if idx < len(expected_sequence):
+                    step = expected_sequence[idx]
+                    comp_bytes = compress_image_to_target(page, step["rules"])
+                    processed_images[step["filename"]] = comp_bytes
+
+        if processed_images:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for filename, img_bytes in processed_images.items():
+                    zip_file.writestr(f"{folder_name}/{filename}", img_bytes)
+            
+            st.markdown("### 📥 Download All Work at Once")
+            
+            st.markdown("""
+                <style>
+                    div.stDownloadButton > button {
+                        background-color: #1E1E1E !important;
+                        color: #FFFFFF !important;
+                        border: 2px solid #333333 !important;
+                        padding: 15px 25px !important;
+                        font-size: 18px !important;
+                        font-weight: bold !important;
+                        border-radius: 8px !important;
+                        width: 100% !important;
+                        transition: all 0.3s ease !important;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+                    }
+                    div.stDownloadButton > button:hover {
+                        background-color: #333333 !important;
+                        border-color: #4F4F4F !important;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            st.download_button(
+                label=f"📦 Download All Images as ZIP ({zip_filename})",
+                data=zip_buffer.getvalue(),
+                file_name=zip_filename,
+                mime="application/zip",
+                key="big_zip_btn"
+            )
+
+        for idx, page in enumerate(pages):
+            if idx >= len(expected_sequence):
+                st.warning(f"⚠️ Page {idx + 1} is extra and exceeds predicted sequence boundaries.")
+                continue
+                
+            step = expected_sequence[idx]
+            filename = step["filename"]
+            rules = step["rules"]
+            
+            st.markdown(f"---")
+            st.subheader(f"📄 Page {idx + 1}: {step['desc']} ──► `{filename}`")
+            
+            col1, col2 = st.columns([1, 2])
+            with col1:
+                st.image(page, use_container_width=True)
+            with col2:
+                if filename in processed_images:
+                    size_kb = len(processed_images[filename]) / 1024
+                    st.success(f"⚡ Compressed size: **{size_kb:.2f} KB**")
+                st.caption(f"Allowed: {rules['min_kb']}-{rules['max_kb']} KB | Dimensions: {rules['dims'][0]}x{rules['dims'][1]}px")
+                
+                if filename in processed_images:
+                    st.download_button(
+                        label=f"⬇️ Download {filename} Individually",
+                        data=processed_images[filename],
+                        file_name=filename,
+                        mime="image/jpeg",
+                        key=f"btn_{idx}"
+                    )
+
+# ==========================================
+# TAB 2: GUIDELINES TAB (WITH AUTO BACKUP)
+# ==========================================
+with tab2:
+    st.write("Review the specific scanning order required to pass validation processes automatically.")
+    
+    parsed_guidelines = ""
+    for path in ["guidelines.md", "./guidelines.md"]:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                parsed_guidelines = f.read()
+            break
+            
+    if parsed_guidelines:
+        st.markdown(parsed_guidelines)
+    else:
+        st.markdown("""
+        ### 🕋 Scanning Rules for Volunteers
+
+        #### 1. Before You Scan
+        * **Use Color:** Set your Adobe Scan filter to **"Original Color"**. *Black & white scans/photocopies are rejected.*
+        * **Clean Margins:** Place documents on a flat, dark background so the app edges crop cleanly.
+
+        #### 2. The Golden Scanning Sequence
+        Scan the entire cover group into **one single PDF file** in this exact order:
+        1. **Passports First:** Cover Head Passport Page 1 → Page 2, then Co-Pilgrims Page 1 → Page 2.
+        2. **Photographs Second:** Cover Head Photo → Co-Pilgrim Photos in order.
+        3. **Bank Details Last:** Scan **only one** Bank Cheque for the entire family group at the very end.
+
+        #### 3. Page Count Cheat Sheet
+        * **1 Pilgrim:** 4 pages total | **2 Pilgrims:** 7 pages total | **3 Pilgrims:** 10 pages total
+        """)
+
+# ==========================================
+# TAB 3: BOOKMARKLET INSTALLER TAB
+# ==========================================
+with tab3:
+    st.markdown("### ⚡ Form Helper Bookmarklet")
+    st.write("This tool speeds up data entry on the Haj portal. It completely removes page copy/paste constraints and locks, and automatically matches/re-confirms duplication inputs instantly.")
+    
+    # Minified unified version for one-click bookmark running
+    bookmarklet_code = "javascript:(function(){const pairs={'passport_no':'c_passport_no','issue_place':'c_issue_place','issue_date':'c_issue_date','expiry_date':'c_expiry_date','birth_date':'c_birth_date','applicant_first_name':'c_applicant_first_name','applicant_last_name':'c_applicant_last_name','gender_name':'c_gender_name','birth_place':'c_birth_place','account_holder_name':'c_account_holder_name','bank_name':'c_bank_name','account_number':'c_account_number','ifsc_code':'c_ifsc_code'};const targetFields=Object.keys(pairs).reduce((acc,key)=>{acc.push(key,pairs[key]);return acc;},[]);const allDateFields=['#issue_date','#expiry_date','#birth_date','#c_issue_date','#c_expiry_date','#c_birth_date'];function unlockEverything(){targetFields.forEach(function(id){var $el=$('#'+id);if($el.length){$el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');$el.css({'user-select':'text','-webkit-user-select':'text','-moz-user-select':'text','-ms-user-select':'text'});}});allDateFields.forEach(function(selector){var $el=$(selector);if($el.length){$el.removeAttr('readonly').prop('readonly',false).css('background-color','#fff');if(typeof $el.datepicker==='function'){try{$el.datepicker('destroy');}catch(e){}}$el.off('keydown keypress keyup focus click change');}});}function runHcoiAutoMirrorEngine(){Object.keys(pairs).forEach(topId=>{const bottomId=pairs[topId];const topEl=document.getElementById(topId);const bottomEl=document.getElementById(bottomId);if(topEl&&bottomEl){const currentVal=topEl.value;if(currentVal&&currentVal.trim()!==""&&bottomEl.value!==currentVal){bottomEl.removeAttribute('readonly');bottomEl.readOnly=false;bottomEl.disabled=false;bottomEl.style.backgroundColor='#fff';bottomEl.value=currentVal;if(topId==='birth_date'&&typeof calculateAge==='function'){try{const calculatedAge=calculateAge(currentVal);const ageBox=document.getElementById('c_age');if(ageBox){ageBox.removeAttribute('readonly');ageBox.readOnly=false;ageBox.value=calculatedAge;$('#frmedit').bootstrapValidator('revalidateField','c_age');}}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(bottomEl).attr('name'));}catch(e){}}}});}unlockEverything();$(document).on('focus click input change keyup paste select','input, select, textarea',function(){unlockEverything();});$(document).on('blur input change keyup paste','#c_birth_date',function(){var val=$(this).val();if(val&&val.includes('-')){try{var calculatedAge=calculateAge(val);$('#c_age').val(calculatedAge);$('#frmedit').bootstrapValidator('revalidateField','c_age');}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(this).attr('name'));}catch(e){}});if(window.hcoiMirrorInterval){clearInterval(window.hcoiMirrorInterval);}window.hcoiMirrorInterval=setInterval(runHcoiAutoMirrorEngine,300);console.log(\"🛡️🚀 Ultimate Unified Engine Active via Bookmarklet!\");})();"
+
+    st.code(bookmarklet_code, language="javascript")
+    
+    st.markdown("""
+    ---
+    ### 🛠️ One-Time Setup Instructions:
+    1. Click the **Copy icon** in the top-right corner of the code window above.
+    2. On your web browser toolbar, right-click an empty space on your **Bookmarks Bar** and click **Add Page** (or **Add Bookmark**).
+    3. Enter the name as: `⚡ HCOI Form Unlocker`
+    4. In the **URL / Location** box, completely delete any existing text, paste (`Ctrl+V` or `Cmd+V`) the code block you copied, and click **Save**.
+    
+    ### 🏃‍♂️ How to Use it:
+    * Every time you open or refresh an applicant entry screen on the Haj Portal, simply click the **⚡ HCOI Form Unlocker** link button on your Bookmarks bar.
+    * Type or paste data into the top main fields normally. The script will automatically mirror everything into the verification fields down the page every 300ms, updating system metrics concurrently!
+    """)
+
+# ==========================================
+# TAB 4: DEVELOPER RAW SCRIPT CONFIGURATION
+# ==========================================
+with tab4:
+    st.markdown("### 🛠️ Clear-Text Structural Automation Script")
+    st.write("This tab displays the clean, un-minified developer layout of your automation script engine. It lets you inspect or log updates to the field structures safely.")
+    
+    clear_script_code = """(function() {
+    // =========================================================================
+    // 1. CONFIGURATION & MAPPING
+    // =========================================================================
+    
+    // Field pairs for the Auto-Mirror Engine (Top Field ID -> Bottom Confirmation Field ID)
+    const hcoiFieldPairs = {
+        // Passport Fields
+        'passport_no': 'c_passport_no',
+        'issue_place': 'c_issue_place',
+        'issue_date': 'c_issue_date',
+        'expiry_date': 'c_expiry_date',
+        'birth_date': 'c_birth_date',
+        'applicant_first_name': 'c_applicant_first_name',
+        'applicant_last_name': 'c_applicant_last_name',
+        'gender_name': 'c_gender_name',
+        'birth_place': 'c_birth_place',
+        
+        // Bank details fields
+        'account_holder_name': 'c_account_holder_name',
+        'bank_name': 'c_bank_name',
+        'account_number': 'c_account_number',
+        'ifsc_code': 'c_ifsc_code'
+    };
+
+    // Flatten all IDs into a single list for the Security Unlocker
+    const targetFields = Object.keys(hcoiFieldPairs).reduce((acc, key) => {
+        acc.push(key, hcoiFieldPairs[key]);
+        return acc;
+    }, []);
+
+    // Specific date selectors that need deep calendar bypasses
+    const allDateFields = ['#issue_date', '#expiry_date', '#birth_date', '#c_issue_date', '#c_expiry_date', '#c_birth_date'];
+
+    // =========================================================================
+    // 2. ENGINE 1: THE SECURITY UNLOCKER (Bypasses Restrictions & Date Pickers)
+    // =========================================================================
+    function unlockEverything() {
+        targetFields.forEach(function(id) {
+            var $el = $('#' + id);
+            if ($el.length) {
+                // Forcefully unbind the website's restriction events
+                $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
+                
+                // Re-allow highlighting/copying text via CSS
+                $el.css({
+                    'user-select': 'text',
+                    '-webkit-user-select': 'text',
+                    '-moz-user-select': 'text',
+                    '-ms-user-select': 'text'
+                });
+            }
+        });
+
+        // 🌟 FIX FOR DATE FIELDS: Force-kill calendar lockdown events
+        allDateFields.forEach(function(selector) {
+            var $el = $(selector);
+            if ($el.length) {
+                // Remove readonly attributes entirely
+                $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
+                
+                // Destroy any bound bootstrap datepicker settings that block typing
+                if (typeof $el.datepicker === 'function') {
+                    try { $el.datepicker('destroy'); } catch(e) {}
+                }
+                
+                // Unbind common calendar blocking events (like keydown/keypress blocks)
+                $el.off('keydown keypress keyup focus click change');
+            }
+        });
+    }
+
+    // =========================================================================
+    // 3. ENGINE 2: THE AUTO-MIRROR & CALCULATION ENGINE
+    // =========================================================================
+    function runHcoiAutoMirrorEngine() {
+        Object.keys(hcoiFieldPairs).forEach(topId => {
+            const bottomId = hcoiFieldPairs[topId];
+            const topEl = document.getElementById(topId);
+            const bottomEl = document.getElementById(bottomId);
+
+            if (topEl && bottomEl) {
+                const currentVal = topEl.value;
+                
+                if (currentVal && currentVal.trim() !== "" && bottomEl.value !== currentVal) {
+                    // Force unlock the target bottom field completely
+                    bottomEl.removeAttribute('readonly');
+                    bottomEl.readOnly = false;
+                    bottomEl.disabled = false;
+                    bottomEl.style.backgroundColor = '#fff';
+
+                    // Pass the data down automatically
+                    bottomEl.value = currentVal;
+
+                    // Handle age calculations dynamically if birth_date changes
+                    if (topId === 'birth_date' && typeof calculateAge === 'function') {
+                        try {
+                            const calculatedAge = calculateAge(currentVal);
+                            const ageBox = document.getElementById('c_age');
+                            if (ageBox) {
+                                ageBox.removeAttribute('readonly');
+                                ageBox.readOnly = false;
+                                ageBox.value = calculatedAge;
+                                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+                            }
+                        } catch(e) {}
+                    }
+
+                    // Force validation updates so form acknowledges the mirrored data
+                    try {
+                        $('#frmedit').bootstrapValidator('revalidateField', $(bottomEl).attr('name'));
+                    } catch(e) {}
+                }
+            }
+        });
+    }
+
+    // =========================================================================
+    // 4. EXECUTION & INITIALIZATION
+    // =========================================================================
+    
+    // Run the unlocker immediately
+    unlockEverything();
+
+    // CRITICAL: Whenever a user interacts with the page, instantly kill any fresh restrictions
+    $(document).on('focus click input change keyup paste select', 'input, select, textarea', function() {
+        unlockEverything();
+    });
+
+    // Also manually catch the manual edge case for c_birth_date validation
+    $(document).on('blur input change keyup paste', '#c_birth_date', function() {
+        var val = $(this).val();
+        if (val && val.includes('-')) {
+            try {
+                var calculatedAge = calculateAge(val);
+                $('#c_age').val(calculatedAge);
+                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
+            } catch(e) {}
+        }
+        try {
+            $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
+        } catch(e) {}
+    });
+
+    // Setup the Background Mirror Timer (runs every 300ms)
+    if (window.hcoiMirrorInterval) { 
+        clearInterval(window.hcoiMirrorInterval); 
+    }
+    window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
+
+    console.log("🛡️🚀 Ultimate Unified Engine Active: Calendar Bypass & Auto-Mirror running smoothly!");
+})();"""
+
+    st.code(clear_script_code, language="javascript")
+    st.info("ℹ️ This clean source text is provided for tracking updates or pushing individual components to a GitHub repository codebase.")
