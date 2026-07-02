@@ -272,10 +272,20 @@ with tab3:
     st.markdown("### ⚡ Form Helper Bookmarklet")
     st.write("This tool speeds up data entry on the Haj portal. It completely removes page copy/paste constraints and locks, and automatically matches/re-confirms duplication inputs instantly.")
     
-    # Minified unified version for one-click bookmark running
-    bookmarklet_code = "javascript:(function(){const pairs={'passport_no':'c_passport_no','issue_place':'c_issue_place','issue_date':'c_issue_date','expiry_date':'c_expiry_date','birth_date':'c_birth_date','applicant_first_name':'c_applicant_first_name','applicant_last_name':'c_applicant_last_name','gender_name':'c_gender_name','birth_place':'c_birth_place','account_holder_name':'c_account_holder_name','bank_name':'c_bank_name','account_number':'c_account_number','ifsc_code':'c_ifsc_code'};const targetFields=Object.keys(pairs).reduce((acc,key)=>{acc.push(key,pairs[key]);return acc;},[]);const allDateFields=['#issue_date','#expiry_date','#birth_date','#c_issue_date','#c_expiry_date','#c_birth_date'];function unlockEverything(){targetFields.forEach(function(id){var $el=$('#'+id);if($el.length){$el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');$el.css({'user-select':'text','-webkit-user-select':'text','-moz-user-select':'text','-ms-user-select':'text'});}});allDateFields.forEach(function(selector){var $el=$(selector);if($el.length){$el.removeAttr('readonly').prop('readonly',false).css('background-color','#fff');if(typeof $el.datepicker==='function'){try{$el.datepicker('destroy');}catch(e){}}$el.off('keydown keypress keyup focus click change');}});}function runHcoiAutoMirrorEngine(){Object.keys(pairs).forEach(topId=>{const bottomId=pairs[topId];const topEl=document.getElementById(topId);const bottomEl=document.getElementById(bottomId);if(topEl&&bottomEl){const currentVal=topEl.value;if(currentVal&&currentVal.trim()!==""&&bottomEl.value!==currentVal){bottomEl.removeAttribute('readonly');bottomEl.readOnly=false;bottomEl.disabled=false;bottomEl.style.backgroundColor='#fff';bottomEl.value=currentVal;if(topId==='birth_date'&&typeof calculateAge==='function'){try{const calculatedAge=calculateAge(currentVal);const ageBox=document.getElementById('c_age');if(ageBox){ageBox.removeAttribute('readonly');ageBox.readOnly=false;ageBox.value=calculatedAge;$('#frmedit').bootstrapValidator('revalidateField','c_age');}}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(bottomEl).attr('name'));}catch(e){}}}});}unlockEverything();$(document).on('focus click input change keyup paste select','input, select, textarea',function(){unlockEverything();});$(document).on('blur input change keyup paste','#c_birth_date',function(){var val=$(this).val();if(val&&val.includes('-')){try{var calculatedAge=calculateAge(val);$('#c_age').val(calculatedAge);$('#frmedit').bootstrapValidator('revalidateField','c_age');}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(this).attr('name'));}catch(e){}});if(window.hcoiMirrorInterval){clearInterval(window.hcoiMirrorInterval);}window.hcoiMirrorInterval=setInterval(runHcoiAutoMirrorEngine,300);console.log(\"🛡️🚀 Ultimate Unified Engine Active via Bookmarklet!\");})();"
-
-    st.code(bookmarklet_code, language="javascript")
+    # Dynamic Check for your Git-pushed 'bookmark_snippet' file
+    bookmarklet_code = ""
+    for path in ["bookmark_snippet", "./bookmark_snippet"]:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                bookmarklet_code = f.read().strip()
+            break
+            
+    if bookmarklet_code:
+        st.code(bookmarklet_code, language="javascript")
+    else:
+        # Emergency local hardcoded fallback in case the Git file disappears or errors out
+        fallback_bookmarklet = "javascript:(function(){const pairs={'passport_no':'c_passport_no','issue_place':'c_issue_place','issue_date':'c_issue_date','expiry_date':'c_expiry_date','birth_date':'c_birth_date','applicant_first_name':'c_applicant_first_name','applicant_last_name':'c_applicant_last_name','gender_name':'c_gender_name','birth_place':'c_birth_place','account_holder_name':'c_account_holder_name','bank_name':'c_bank_name','account_number':'c_account_number','ifsc_code':'c_ifsc_code'};const targetFields=Object.keys(pairs).reduce((acc,key)=>{acc.push(key,pairs[key]);return acc;},[]);const allDateFields=['#issue_date','#expiry_date','#birth_date','#c_issue_date','#c_expiry_date','#c_birth_date'];function unlockEverything(){targetFields.forEach(function(id){var $el=$('#'+id);if($el.length){$el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');$el.css({'user-select':'text','-webkit-user-select':'text','-moz-user-select':'text','-ms-user-select':'text'});}});allDateFields.forEach(function(selector){var $el=$(selector);if($el.length){$el.removeAttr('readonly').prop('readonly',false).css('background-color','#fff');if(typeof $el.datepicker==='function'){try{$el.datepicker('destroy');}catch(e){}}$el.off('keydown keypress keyup focus click change');}});}function runHcoiAutoMirrorEngine(){Object.keys(pairs).forEach(topId=>{const bottomId=pairs[topId];const topEl=document.getElementById(topId);const bottomEl=document.getElementById(bottomId);if(topEl&&bottomEl){const currentVal=topEl.value;if(currentVal&&currentVal.trim()!==""&&bottomEl.value!==currentVal){bottomEl.removeAttribute('readonly');bottomEl.readOnly=false;bottomEl.disabled=false;bottomEl.style.backgroundColor='#fff';bottomEl.value=currentVal;if(topId==='birth_date'&&typeof calculateAge==='function'){try{const calculatedAge=calculateAge(currentVal);const ageBox=document.getElementById('c_age');if(ageBox){ageBox.removeAttribute('readonly');ageBox.readOnly=false;ageBox.value=calculatedAge;$('#frmedit').bootstrapValidator('revalidateField','c_age');}}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(bottomEl).attr('name'));}catch(e){}}}});}unlockEverything();$(document).on('focus click input change keyup paste select','input, select, textarea',function(){unlockEverything();});$(document).on('blur input change keyup paste','#c_birth_date',function(){var val=$(this).val();if(val&&val.includes('-')){try{var calculatedAge=calculateAge(val);$('#c_age').val(calculatedAge);$('#frmedit').bootstrapValidator('revalidateField','c_age');}catch(e){}}try{$('#frmedit').bootstrapValidator('revalidateField',$(this).attr('name'));}catch(e){}});if(window.hcoiMirrorInterval){clearInterval(window.hcoiMirrorInterval);}window.hcoiMirrorInterval=setInterval(runHcoiAutoMirrorEngine,300);console.log(\"🛡️🚀 Ultimate Unified Engine Active via Bookmarklet!\");})();"
+        st.code(fallback_bookmarklet, language="javascript")
     
     st.markdown("""
     ---
@@ -295,16 +305,22 @@ with tab3:
 # ==========================================
 with tab4:
     st.markdown("### 🛠️ Clear-Text Structural Automation Script")
-    st.write("This tab displays the clean, un-minified developer layout of your automation script engine. It lets you inspect or log updates to the field structures safely.")
+    st.write("This tab displays the clean, un-minified developer layout of your automation script engine from your repo file.")
     
-    clear_script_code = """(function() {
-    // =========================================================================
-    // 1. CONFIGURATION & MAPPING
-    // =========================================================================
-    
-    // Field pairs for the Auto-Mirror Engine (Top Field ID -> Bottom Confirmation Field ID)
+    # Dynamic check for your un-minified text config script
+    clear_script_code = ""
+    for path in ["script", "./script"]:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                clear_script_code = f.read()
+            break
+            
+    if clear_script_code:
+        st.code(clear_script_code, language="javascript")
+    else:
+        # Fallback developer code block display 
+        fallback_developer_text = """(function() {
     const hcoiFieldPairs = {
-        // Passport Fields
         'passport_no': 'c_passport_no',
         'issue_place': 'c_issue_place',
         'issue_date': 'c_issue_date',
@@ -314,141 +330,13 @@ with tab4:
         'applicant_last_name': 'c_applicant_last_name',
         'gender_name': 'c_gender_name',
         'birth_place': 'c_birth_place',
-        
-        // Bank details fields
         'account_holder_name': 'c_account_holder_name',
         'bank_name': 'c_bank_name',
         'account_number': 'c_account_number',
         'ifsc_code': 'c_ifsc_code'
     };
-
-    // Flatten all IDs into a single list for the Security Unlocker
-    const targetFields = Object.keys(hcoiFieldPairs).reduce((acc, key) => {
-        acc.push(key, hcoiFieldPairs[key]);
-        return acc;
-    }, []);
-
-    // Specific date selectors that need deep calendar bypasses
-    const allDateFields = ['#issue_date', '#expiry_date', '#birth_date', '#c_issue_date', '#c_expiry_date', '#c_birth_date'];
-
-    // =========================================================================
-    // 2. ENGINE 1: THE SECURITY UNLOCKER (Bypasses Restrictions & Date Pickers)
-    // =========================================================================
-    function unlockEverything() {
-        targetFields.forEach(function(id) {
-            var $el = $('#' + id);
-            if ($el.length) {
-                // Forcefully unbind the website's restriction events
-                $el.off('copy paste cut drop keydown.prevent-shortcuts contextmenu.prevent-shortcuts');
-                
-                // Re-allow highlighting/copying text via CSS
-                $el.css({
-                    'user-select': 'text',
-                    '-webkit-user-select': 'text',
-                    '-moz-user-select': 'text',
-                    '-ms-user-select': 'text'
-                });
-            }
-        });
-
-        // 🌟 FIX FOR DATE FIELDS: Force-kill calendar lockdown events
-        allDateFields.forEach(function(selector) {
-            var $el = $(selector);
-            if ($el.length) {
-                // Remove readonly attributes entirely
-                $el.removeAttr('readonly').prop('readonly', false).css('background-color', '#fff');
-                
-                // Destroy any bound bootstrap datepicker settings that block typing
-                if (typeof $el.datepicker === 'function') {
-                    try { $el.datepicker('destroy'); } catch(e) {}
-                }
-                
-                // Unbind common calendar blocking events (like keydown/keypress blocks)
-                $el.off('keydown keypress keyup focus click change');
-            }
-        });
-    }
-
-    // =========================================================================
-    // 3. ENGINE 2: THE AUTO-MIRROR & CALCULATION ENGINE
-    // =========================================================================
-    function runHcoiAutoMirrorEngine() {
-        Object.keys(hcoiFieldPairs).forEach(topId => {
-            const bottomId = hcoiFieldPairs[topId];
-            const topEl = document.getElementById(topId);
-            const bottomEl = document.getElementById(bottomId);
-
-            if (topEl && bottomEl) {
-                const currentVal = topEl.value;
-                
-                if (currentVal && currentVal.trim() !== "" && bottomEl.value !== currentVal) {
-                    // Force unlock the target bottom field completely
-                    bottomEl.removeAttribute('readonly');
-                    bottomEl.readOnly = false;
-                    bottomEl.disabled = false;
-                    bottomEl.style.backgroundColor = '#fff';
-
-                    // Pass the data down automatically
-                    bottomEl.value = currentVal;
-
-                    // Handle age calculations dynamically if birth_date changes
-                    if (topId === 'birth_date' && typeof calculateAge === 'function') {
-                        try {
-                            const calculatedAge = calculateAge(currentVal);
-                            const ageBox = document.getElementById('c_age');
-                            if (ageBox) {
-                                ageBox.removeAttribute('readonly');
-                                ageBox.readOnly = false;
-                                ageBox.value = calculatedAge;
-                                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
-                            }
-                        } catch(e) {}
-                    }
-
-                    // Force validation updates so form acknowledges the mirrored data
-                    try {
-                        $('#frmedit').bootstrapValidator('revalidateField', $(bottomEl).attr('name'));
-                    } catch(e) {}
-                }
-            }
-        });
-    }
-
-    // =========================================================================
-    // 4. EXECUTION & INITIALIZATION
-    // =========================================================================
-    
-    // Run the unlocker immediately
-    unlockEverything();
-
-    // CRITICAL: Whenever a user interacts with the page, instantly kill any fresh restrictions
-    $(document).on('focus click input change keyup paste select', 'input, select, textarea', function() {
-        unlockEverything();
-    });
-
-    // Also manually catch the manual edge case for c_birth_date validation
-    $(document).on('blur input change keyup paste', '#c_birth_date', function() {
-        var val = $(this).val();
-        if (val && val.includes('-')) {
-            try {
-                var calculatedAge = calculateAge(val);
-                $('#c_age').val(calculatedAge);
-                $('#frmedit').bootstrapValidator('revalidateField', 'c_age');
-            } catch(e) {}
-        }
-        try {
-            $('#frmedit').bootstrapValidator('revalidateField', $(this).attr('name'));
-        } catch(e) {}
-    });
-
-    // Setup the Background Mirror Timer (runs every 300ms)
-    if (window.hcoiMirrorInterval) { 
-        clearInterval(window.hcoiMirrorInterval); 
-    }
-    window.hcoiMirrorInterval = setInterval(runHcoiAutoMirrorEngine, 300);
-
-    console.log("🛡️🚀 Ultimate Unified Engine Active: Calendar Bypass & Auto-Mirror running smoothly!");
+    // ... Module logic processes data synchronously ...
 })();"""
-
-    st.code(clear_script_code, language="javascript")
+        st.code(fallback_developer_text, language="javascript")
+        
     st.info("ℹ️ This clean source text is provided for tracking updates or pushing individual components to a GitHub repository codebase.")
